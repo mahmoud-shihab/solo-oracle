@@ -7,6 +7,7 @@ A small iOS + Android app for solo tabletop RPG play, built with Expo (React Nat
 - **Dice**: d2, d4, d6, d8, d10, d12, d20, d100 and any custom die (d7, d37…). Type a formula or tap buttons.
   - `2d6+3`, `1d20 adv`, `1d20 dis`, `4d6kh3` (keep highest 3), `2d20kl1` (keep lowest), `4d6dl1` / `dh1` (drop lowest/highest), `3d6!` (exploding), `d%`.
   - Save named formulas; tap to roll, long-press to load into the editor. Roll history with dropped dice struck through.
+- **Coin**: flip 1 to 100 coins; shows heads/tails counts and the sequence.
 - **Playing cards**: draw X from a 52-card deck (optionally 54 with jokers).
 - **Tarot**: draw X from the 78-card Rider–Waite–Smith deck (or Major Arcana only). Each card comes up upright or reversed (50/50, can be turned off) with short keywords for both.
 - **Lists**: make your own lists/tables (one entry per line, paste-friendly) and pick X entries, with or without repeats.

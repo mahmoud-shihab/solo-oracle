@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import CardsScreen from './src/screens/CardsScreen';
+import CoinScreen from './src/screens/CoinScreen';
 import DiceScreen from './src/screens/DiceScreen';
 import ListsScreen from './src/screens/ListsScreen';
 import TarotScreen from './src/screens/TarotScreen';
@@ -10,6 +11,7 @@ import { colors } from './src/theme';
 
 const TABS = [
   { key: 'dice', label: 'Dice', icon: '🎲', Screen: DiceScreen },
+  { key: 'coin', label: 'Coin', icon: '🪙', Screen: CoinScreen },
   { key: 'cards', label: 'Cards', icon: '🂡', Screen: CardsScreen },
   { key: 'tarot', label: 'Tarot', icon: '🔮', Screen: TarotScreen },
   { key: 'lists', label: 'Lists', icon: '📜', Screen: ListsScreen },

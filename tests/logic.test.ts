@@ -123,3 +123,12 @@ test('quick-button formula editing', () => {
     assert.equal(normalize(parseFormula(f)), f, 'round trip ' + f);
   }
 });
+
+import { flipCoins } from '../src/lib/coin';
+test('coin flips are fair and counted', () => {
+  const f = flipCoins(20000, rng);
+  assert.equal(f.sides.length, 20000);
+  assert.equal(f.heads + f.tails, 20000);
+  assert.ok(f.heads > 9500 && f.heads < 10500, `heads ${f.heads}`);
+  assert.deepEqual(flipCoins(3, scripted([0, 1, 0])), { sides: ['H', 'T', 'H'], heads: 2, tails: 1 });
+});
