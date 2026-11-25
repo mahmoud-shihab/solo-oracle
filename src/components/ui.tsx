@@ -225,3 +225,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 });
+
+/** Screen title with an optional "Clear screen" button on the right. */
+export function ScreenHeader({ title, onClear }: { title: string; onClear?: () => void }) {
+  return (
+    <View style={[styles.sectionTitleRow, { marginBottom: 12 }]}>
+      <Text style={[ui.screenTitle, { marginBottom: 0, flexShrink: 1 }]}>{title}</Text>
+      {onClear ? <Button label="Clear screen" kind="ghost" compact onPress={onClear} /> : null}
+    </View>
+  );
+}

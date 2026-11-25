@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Button, Chip, Panel, SectionTitle, Stepper, Toggle, ui } from '../components/ui';
+import { Button, Chip, Panel, SectionTitle, Stepper, Toggle, ui, ScreenHeader } from '../components/ui';
 import { sampleWithoutReplacement, sampleWithReplacement } from '../lib/random';
 import { rng } from '../rng';
 import { usePersistentState } from '../storage';
@@ -40,6 +40,7 @@ export default function ListsScreen() {
   const [count, setCount] = usePersistentState('lists.count', 1);
   const [repeats, setRepeats] = usePersistentState('lists.repeats', false);
   const [history, setHistory] = usePersistentState<Pick[]>('lists.history', []);
+  const [clearedId, setClearedId] = usePersistentState<string | null>('lists.clearedId', null);
   const [editing, setEditing] = useState<{ id: string | null; name: string; text: string } | null>(null);
 
   const selected = lists.find((l) => l.id === selectedId) ?? lists[0];
@@ -77,7 +78,9 @@ export default function ListsScreen() {
     setEditing(null);
   };
 
-  const latest = history[0];
+  const latest = history[0] && history[0].id !== clearedId ? history[0] : undefined;
+  const past = latest ? history.slice(1) : history;
+  const clearScreen = latest ? () => setClearedId(latest.id) : undefined;
 
   if (editing) {
     const lineCount = toLines(editing.text).length;
@@ -122,7 +125,7 @@ export default function ListsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Text style={ui.screenTitle}>Lists</Text>
+      <ScreenHeader title="Lists" onClear={clearScreen} />
       <Panel>
         <SectionTitle right={<Button label="+ New list" kind="secondary" compact onPress={startNew} />}>
           Your lists
@@ -188,12 +191,12 @@ export default function ListsScreen() {
         </Panel>
       ) : null}
 
-      {history.length > 1 ? (
+      {past.length > 0 ? (
         <Panel>
           <SectionTitle right={<Button label="Clear" kind="ghost" compact onPress={() => setHistory([])} />}>
             History
           </SectionTitle>
-          {history.slice(1).map((h) => (
+          {past.map((h) => (
             <Text key={h.id} style={styles.historyRow}>
               <Text style={{ color: colors.muted }}>{h.listName}: </Text>
               {h.items.join(' · ')}

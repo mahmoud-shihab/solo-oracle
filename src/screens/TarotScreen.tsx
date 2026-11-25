@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Button, Panel, SectionTitle, Stepper, Toggle, ui } from '../components/ui';
+import { Button, Panel, SectionTitle, Stepper, Toggle, ui, ScreenHeader } from '../components/ui';
 import { ROMAN, TAROT_DECK, type TarotCard } from '../lib/cards';
 import { rng } from '../rng';
 import { usePersistentState } from '../storage';
@@ -25,6 +25,7 @@ export default function TarotScreen() {
   const [majorsOnly, setMajorsOnly] = usePersistentState('tarot.majorsOnly', false);
   const [persistent, setPersistent] = usePersistentState('tarot.persistent', false);
   const [history, setHistory] = usePersistentState<Spread[]>('tarot.history', []);
+  const [clearedId, setClearedId] = usePersistentState<string | null>('tarot.clearedId', null);
 
   const deck = useMemo(() => (majorsOnly ? TAROT_DECK.filter((c) => c.arcana === 'major') : TAROT_DECK), [majorsOnly]);
   const shoe = useShoe('tarot', deck, persistent);
@@ -39,11 +40,13 @@ export default function TarotScreen() {
     setHistory((h) => [{ id: `${Date.now()}`, draws }, ...h].slice(0, 30));
   };
 
-  const latest = history[0];
+  const latest = history[0] && history[0].id !== clearedId ? history[0] : undefined;
+  const past = latest ? history.slice(1) : history;
+  const clearScreen = latest ? () => setClearedId(latest.id) : undefined;
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Text style={ui.screenTitle}>Tarot</Text>
+      <ScreenHeader title="Tarot" onClear={clearScreen} />
       <Panel>
         <Stepper label="Cards to draw" value={n} onChange={setCount} min={1} max={max} />
         <Toggle label="Reversed cards" hint="Each card has a 50% chance to come up reversed" value={reversals} onChange={setReversals} />
@@ -74,12 +77,12 @@ export default function TarotScreen() {
         </Panel>
       ) : null}
 
-      {history.length > 1 ? (
+      {past.length > 0 ? (
         <Panel>
           <SectionTitle right={<Button label="Clear" kind="ghost" compact onPress={() => setHistory([])} />}>
             History
           </SectionTitle>
-          {history.slice(1).map((s) => (
+          {past.map((s) => (
             <Text key={s.id} style={styles.historyRow}>
               {s.draws
                 .map((d) => `${byId.get(d.cardId)?.name ?? '?'}${d.reversed ? ' (R)' : ''}`)

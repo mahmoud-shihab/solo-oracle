@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Button, Panel, SectionTitle, Stepper, ui } from '../components/ui';
+import { Button, Panel, SectionTitle, Stepper, ui, ScreenHeader } from '../components/ui';
 import { flipCoins, type CoinFlip } from '../lib/coin';
 import { rng } from '../rng';
 import { usePersistentState } from '../storage';
@@ -13,13 +13,16 @@ interface Entry extends CoinFlip {
 export default function CoinScreen() {
   const [count, setCount] = usePersistentState('coin.count', 1);
   const [history, setHistory] = usePersistentState<Entry[]>('coin.history', []);
+  const [clearedId, setClearedId] = usePersistentState<string | null>('coin.clearedId', null);
 
   const flip = () => setHistory((h) => [{ id: `${Date.now()}`, ...flipCoins(count, rng) }, ...h].slice(0, 50));
-  const latest = history[0];
+  const latest = history[0] && history[0].id !== clearedId ? history[0] : undefined;
+  const past = latest ? history.slice(1) : history;
+  const clearScreen = latest ? () => setClearedId(latest.id) : undefined;
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Text style={ui.screenTitle}>Coin</Text>
+      <ScreenHeader title="Coin" onClear={clearScreen} />
       <Panel>
         <Stepper label="Coins to flip" value={count} onChange={setCount} min={1} max={100} />
         <Button label={count === 1 ? 'Flip' : `Flip ${count}`} onPress={flip} style={{ marginTop: 10 }} />
@@ -53,12 +56,12 @@ export default function CoinScreen() {
         </Panel>
       ) : null}
 
-      {history.length > 1 ? (
+      {past.length > 0 ? (
         <Panel>
           <SectionTitle right={<Button label="Clear" kind="ghost" compact onPress={() => setHistory([])} />}>
             History
           </SectionTitle>
-          {history.slice(1).map((h) => (
+          {past.map((h) => (
             <Text key={h.id} style={styles.historyRow}>
               {h.sides.length === 1
                 ? h.sides[0] === 'H' ? 'Heads' : 'Tails'

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Button, Panel, SectionTitle, Stepper, Toggle, ui } from '../components/ui';
+import { Button, Panel, SectionTitle, Stepper, Toggle, ui, ScreenHeader } from '../components/ui';
 import { playingCardName, playingDeck, SUIT_SYMBOL, type PlayingCard } from '../lib/cards';
 import { usePersistentState } from '../storage';
 import { useShoe } from '../useShoe';
@@ -16,6 +16,7 @@ export default function CardsScreen() {
   const [jokers, setJokers] = usePersistentState('cards.jokers', false);
   const [persistent, setPersistent] = usePersistentState('cards.persistent', false);
   const [history, setHistory] = usePersistentState<Draw[]>('cards.history', []);
+  const [clearedId, setClearedId] = usePersistentState<string | null>('cards.clearedId', null);
   const deck = useMemo(() => playingDeck(jokers), [jokers]);
   const shoe = useShoe('cards', deck, persistent);
 
@@ -28,11 +29,13 @@ export default function CardsScreen() {
     if (cards.length) setHistory((h) => [{ id: `${Date.now()}`, cards }, ...h].slice(0, 30));
   };
 
-  const latest = history[0];
+  const latest = history[0] && history[0].id !== clearedId ? history[0] : undefined;
+  const past = latest ? history.slice(1) : history;
+  const clearScreen = latest ? () => setClearedId(latest.id) : undefined;
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Text style={ui.screenTitle}>Playing cards</Text>
+      <ScreenHeader title="Playing cards" onClear={clearScreen} />
       <Panel>
         <Stepper label="Cards to draw" value={n} onChange={setCount} min={1} max={max} />
         <Toggle label="Include jokers" hint="54-card deck with a red and a black joker" value={jokers} onChange={setJokers} />
@@ -63,12 +66,12 @@ export default function CardsScreen() {
         </Panel>
       ) : null}
 
-      {history.length > 1 ? (
+      {past.length > 0 ? (
         <Panel>
           <SectionTitle right={<Button label="Clear" kind="ghost" compact onPress={() => setHistory([])} />}>
             History
           </SectionTitle>
-          {history.slice(1).map((d) => (
+          {past.map((d) => (
             <Text key={d.id} style={styles.historyRow}>
               {d.cards.map((c, i) => (
                 <Text key={i} style={{ color: c.red ? colors.red : colors.text }}>

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Button, Chip, Panel, SectionTitle, Stepper, ui } from '../components/ui';
+import { Button, Chip, Panel, SectionTitle, Stepper, ui, ScreenHeader } from '../components/ui';
 import { DiceSyntaxError, parseFormula, roll, type DieRoll, type RollResult } from '../lib/dice';
 import { addDie, addModifier, toggleAdv, toggleExplode, toggleKeep } from '../lib/diceEdit';
 import { rng } from '../rng';
@@ -33,6 +33,7 @@ export default function DiceScreen() {
   const [formula, setFormula] = usePersistentState('dice.formula', '');
   const [saved, setSaved] = usePersistentState<SavedFormula[]>('dice.saved', DEFAULT_SAVED);
   const [history, setHistory] = usePersistentState<HistoryEntry[]>('dice.history', []);
+  const [clearedId, setClearedId] = usePersistentState<string | null>('dice.clearedId', null);
   const [customSides, setCustomSides] = useState('');
   const [keepN, setKeepN] = useState(1);
   const [saveName, setSaveName] = useState('');
@@ -77,11 +78,13 @@ export default function DiceScreen() {
     setShowSave(false);
   };
 
-  const latest = history[0];
+  const latest = history[0] && history[0].id !== clearedId ? history[0] : undefined;
+  const past = latest ? history.slice(1) : history;
+  const clearScreen = latest ? () => setClearedId(latest.id) : undefined;
 
   return (
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={ui.screenTitle}>Dice</Text>
+      <ScreenHeader title="Dice" onClear={clearScreen} />
 
       <Panel>
         <TextInput
@@ -196,12 +199,12 @@ export default function DiceScreen() {
         <Text style={[ui.muted, { marginTop: 8, fontSize: 12 }]}>Tap to roll. Long-press to load into the editor.</Text>
       </Panel>
 
-      {history.length > 1 ? (
+      {past.length > 0 ? (
         <Panel>
           <SectionTitle right={<Button label="Clear" kind="ghost" compact onPress={() => setHistory([])} />}>
             History
           </SectionTitle>
-          {history.slice(1).map((h) => (
+          {past.map((h) => (
             <View key={h.id} style={styles.historyRow}>
               <Text style={styles.historyTotal}>{h.result.total}</Text>
               <View style={{ flex: 1 }}>
